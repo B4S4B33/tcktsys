@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-export default function Login() {
+export default function Login({ onSignup }: { onSignup: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +24,6 @@ export default function Login() {
         return;
       }
 
-      // Successful login — redirect logic should be handled by the parent (App.tsx)
       window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
@@ -51,6 +50,7 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Brief summary of the problem"
               style={styles.input}
             />
           </div>
@@ -72,7 +72,10 @@ export default function Login() {
         </form>
 
         <p style={styles.hint}>
-          Don't have an account? <a href="/signup" style={styles.link}>Sign up</a>
+          Don't have an account?{' '}
+          <a href="#" onClick={(e) => { e.preventDefault(); onSignup(); }} style={styles.link}>
+            Sign up
+          </a>
         </p>
       </div>
     </div>
@@ -160,5 +163,6 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#2563eb',
     textDecoration: 'none',
     marginLeft: 4,
+    cursor: 'pointer',
   },
 };

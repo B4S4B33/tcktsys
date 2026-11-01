@@ -1,6 +1,8 @@
+// src/App.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import Login from './components/Login';
+import Signup from './components/Signup';
 import UserPage from './pages/UserPage';
 import DeveloperPage from './pages/DeveloperPage';
 import AdminPage from './pages/AdminPage';
@@ -10,6 +12,7 @@ type SessionUser = { id: string; email: string };
 export default function App() {
   const [session, setSession] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSignup, setIsSignup] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -42,7 +45,15 @@ export default function App() {
   }
 
   if (!session) {
-    return <Login />;
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        {isSignup ? (
+          <Signup onLogin={() => setIsSignup(false)} />
+        ) : (
+          <Login onSignup={() => setIsSignup(true)} />
+        )}
+      </div>
+    );
   }
 
   const role = getRoleFromEmail(session.email);
