@@ -1,6 +1,7 @@
 // src/pages/DeveloperPage.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import TicketComments from '../components/TicketComments';
 
 type Ticket = {
   id: string;
@@ -52,13 +53,11 @@ export default function DeveloperPage({ user }: { user: { id: string; email: str
     }
   }
 
-  const statusColor: Record<string, string> = {
-    open: '#64748b',
-    assigned: '#2563eb',
-    in_progress: '#0891b2',
-    resolved: '#16a34a',
-    closed: '#475569',
-    force_closed: '#dc2626',
+  const severityColor: Record<string, string> = {
+    low: '#16a34a',
+    medium: '#ca8a04',
+    high: '#dc2626',
+    critical: '#be123c',
   };
 
   if (loading) return <div style={styles.loading}>Loading your assigned tickets...</div>;
@@ -114,6 +113,7 @@ export default function DeveloperPage({ user }: { user: { id: string; email: str
                     </button>
                   )}
                 </div>
+                <TicketComments ticketId={t.id} user={user} />
               </div>
             ))}
           </div>
@@ -122,13 +122,6 @@ export default function DeveloperPage({ user }: { user: { id: string; email: str
     </div>
   );
 }
-
-const severityColor: Record<string, string> = {
-  low: '#16a34a',
-  medium: '#ca8a04',
-  high: '#dc2626',
-  critical: '#be123c',
-};
 
 const styles: Record<string, React.CSSProperties> = {
   page: {

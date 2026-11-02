@@ -1,6 +1,7 @@
 // src/pages/AdminPage.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import TicketComments from '../components/TicketComments';
 
 type Ticket = {
   id: string;
@@ -25,6 +26,8 @@ type UserRow = {
   email: string;
   role: string;
 };
+
+type Role = 'user' | 'developer' | 'admin';
 
 export default function AdminPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -101,6 +104,39 @@ export default function AdminPage() {
     }
   }
 
+  async function deleteTicket(ticketId: string) {
+    if (!window.confirm('Are you sure you want to delete this ticket?')) return;
+    const { error: err } = await supabase.from('tickets').delete().eq('id', ticketId);
+    if (err) {
+      setError(err.message);
+    } else {
+      fetchAll();
+    }
+  }
+
+  async function changeUserRole(userId: string, newRole: Role) {
+    const { error: err } = await supabase
+      .from('users')
+      .update({ role: newRole })
+      .eq('id', userId);
+
+    if (err) {
+      setError(err.message);
+    } else {
+      fetchAll();
+    }
+  }
+
+  async function deleteUser(userId: string) {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    const { error: err } = await supabase.from('users').delete().eq('id', userId);
+    if (err) {
+      setError(err.message);
+    } else {
+      fetchAll();
+    }
+  }
+
   const statusColor: Record<string, string> = {
     open: '#64748b',
     assigned: '#2563eb',
@@ -170,7 +206,7 @@ export default function AdminPage() {
                     <td style={styles.tableCell}>
                       {dev ? dev.name : <em style={{ color: '#94a3b8' }}>Unassigned</em>}
                     </td>
-                    <td style={styles.tableCell} style={{ minWidth: 200 }}>
+                    <td style={styles.tableCell} style={{ minWidth: 260 }}>
                       {isAssigning ? (
                         <div style={styles.assignRow}>
                           <select
@@ -208,8 +244,10 @@ export default function AdminPage() {
                           >
                             Force Close
                           </button>
+                          <button onClick={() => deleteTicket(t.id)} style={styles.deleteButton}>Delete</button>
                         </div>
                       )}
+                      <TicketComments ticketId={t.id} user={{ id: 'admin', email: 'admin' }} />
                     </td>
                   </tr>
                 );
@@ -241,16 +279,22 @@ export default function AdminPage() {
           <div style={styles.userList}>
             {users.map((u) => (
               <div key={u.id} style={styles.userCard}>
-                <div style={{ fontWeight: 600 }}>{u.name}</div>
-                <div style={{ fontSize: 12, color: '#64748b' }}>{u.email}</div>
-                <span
-                  style={{
-                    ...styles.badge,
-                    backgroundColor: u.role === 'admin' ? '#dc2626' : u.role === 'developer' ? '#2563eb' : '#64748b',
-                  }}
-                >
-                  {u.role}
-                </span>
+                <div style={styles.userInfo}>
+                  <div style={styles.userName}>{u.name}</div>
+                  <div style={styles.userEmail}>{u.email}</div>
+                </div>
+                <div style={styles.userRoleRow}>
+                  <select
+                    value={u.role}
+                    onChange={(e) => changeUserRole(u.id, e.target.value as Role)}
+                    style={styles.roleSelect}
+                  >
+                    <option value="user">User</option>
+                    <option value="developer">Developer</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <button onClick={() => deleteUser(u.id)} style={styles.deleteUserButton}>Delete</button>
+                </div>
               </div>
             ))}
           </div>
@@ -276,7 +320,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxSizing: 'border-box',
   },
   card: {
-    maxWidth: 1100,
+    maxWidth: 1200,
     margin: '0 auto',
     backgroundColor: '#ffffff',
     padding: 24,
@@ -345,8 +389,8 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: 'uppercase',
     display: 'inline-block',
   },
-  actionRow: { display: 'flex', gap: 6 },
-  assignRow: { display: 'flex', gap: 6, alignItems: 'center' },
+  actionRow: { display: 'flex', gap: 6, flexWrap: 'wrap' },
+  assignRow: { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
   select: {
     padding: 6,
     fontSize: 12,
@@ -393,6 +437,16 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
   },
+  deleteButton: {
+    padding: '6px 10px',
+    backgroundColor: '#94a3b8',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: 4,
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
   developerList: { display: 'flex', flexDirection: 'column', gap: 8 },
   developerCard: {
     padding: 12,
@@ -415,6 +469,28 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  userInfo: { display: 'flex', flexDirection: 'column', gap: 2 },
+  userName: { fontWeight: 600, color: '#0f172a' },
+  userEmail: { fontSize: 12, color: '#64748b' },
+  userRoleRow: { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
+  roleSelect: {
+    padding: 6,
+    fontSize: 12,
+    border: '1px solid #cbd5e1',
+    borderRadius: 4,
+  },
+  deleteUserButton: {
+    padding: '6px 10px',
+    backgroundColor: '#dc2626',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: 4,
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
   },
   error: {
     backgroundColor: '#fef2f2',

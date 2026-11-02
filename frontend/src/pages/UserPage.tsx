@@ -1,6 +1,7 @@
 // src/pages/UserPage.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import TicketComments from '../components/TicketComments';
 
 type Ticket = {
   id: string;
@@ -170,6 +171,7 @@ export default function UserPage({ user }: { user: { id: string; email: string }
                     Confirm Fix
                   </button>
                 )}
+                <TicketComments ticketId={t.id} user={user} />
               </div>
             ))}
           </div>
